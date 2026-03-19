@@ -1,0 +1,111 @@
+  name: local-dev
+
+  services: 
+
+    postgres: 
+      image: postgres:18.3-alpine3.23
+      container_name: postgres
+      ports: 
+        - "5432:5432"
+      environment:
+        POSTGRES_PASSWORD: "12345"
+        PGDATA: /var/lib/postgresql/18/docker
+        POSTGRES_INITDB_ARGS: --locale-provider=icu --icu-locale=az-AZ --locale=en_US.UTF-8
+      volumes:
+        - pg_data:/var/lib/postgresql
+      restart: always
+      networks:
+        - infra_net
+
+    pgadmin:
+      image: dpage/pgadmin4:9
+      container_name: pgadmin
+      environment:
+        PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+        PGADMIN_DEFAULT_PASSWORD: "12345"
+      ports:
+        - "8080:80"
+      volumes:
+        - pgadmin_data:/var/lib/pgadmin
+      networks:
+        - infra_net
+      restart: always
+
+    mysql: 
+      image: mysql:9.6
+      container_name: mysql
+      ports: 
+        - "3306:3306"
+      environment:
+        MYSQL_ROOT_PASSWORD: "12345"
+      volumes:
+        - mysql_data:/var/lib/mysql
+      restart: always
+      networks:
+        - infra_net
+
+    phpmyadmin: 
+      image: phpmyadmin:5
+      container_name: phpmyadmin
+      ports: 
+        - "8081:80"
+      environment: 
+        PMA_HOST: mysql
+      depends_on:
+        - mysql
+      restart: always
+      networks:
+        - infra_net
+
+    redis: 
+      image: redis:8.6-alpine
+      container_name: redis
+      ports: 
+        - "6379:6379"
+      volumes:
+        - redis_data:/data
+      restart: always
+      networks:
+        - infra_net
+
+    redis-insight:
+      image: redis/redisinsight:latest
+      container_name: redis_insight
+      ports:
+        - "5540:5540"
+      environment:
+        RI_REDIS_HOST: "redis"
+      volumes:
+        - redis_insight_data:/data
+      networks:
+        - infra_net
+      restart: always
+
+    minio: 
+      image: quay.io/minio/aistor/minio
+      container_name: minio
+      ports: 
+        - "9000:9000"
+        - "9001:9001"
+      environment: 
+        MINIO_ROOT_USER: "minioadmin"
+        MINIO_ROOT_PASSWORD: "minioadmin"
+      volumes:
+        - minio_data:/mnt/data
+        - ./minio/minio.license:/minio.license
+      command: server /mnt/data --license /minio.license
+      restart: always
+      networks:
+        - infra_net
+
+  networks:
+    infra_net:
+      driver: bridge
+
+  volumes: 
+    pg_data:
+    pgadmin_data:
+    mysql_data:
+    minio_data:
+    redis_data:
+    redis_insight_data:
