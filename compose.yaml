@@ -98,6 +98,18 @@
       networks:
         - infra_net
 
+    mailpit:
+      image: axllent/mailpit:latest
+      container_name: mailpit
+      ports:
+        - "${MAILPIT_PORT:-8025}:8025"
+        - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      volumes:
+        - mailpit_data:/data
+      networks:
+        - infra_net
+      restart: always
+
   networks:
     infra_net:
       driver: bridge
@@ -109,3 +121,4 @@
     minio_data:
     redis_data:
     redis_insight_data:
+    mailpit_data:
